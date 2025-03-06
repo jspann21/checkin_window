@@ -1,4 +1,4 @@
-# Library Book Check-In System
+# OCLC WMS Book Check-In Program
 
 A desktop application built with PyQt5 that automatically determines whether a book should be processed as a check-in or a non-loan return in OCLC's WorldShare Management Services (WMS).
 
