@@ -1,0 +1,10 @@
+{
+  "wskey": "your_wskey",
+  "secret": "your_secret",
+  "scope": "WMS_CIRCULATION WMS_Availability WorldCatDiscoveryAPI WMS_NCIP",
+  "institution_id": "your_institution_id",
+  "registry_id": "your_registry_id",
+  "discovery_api_url": "https://discovery.api.oclc.org/worldcat-org-ci",
+  "ncip_api_url": "https://circ.sd00.worldcat.org/ncip",
+  "oauth_server_token": "https://oauth.oclc.org/token"
+}
