@@ -49,16 +49,39 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
     return os.path.join(base_path, relative_path)
 
+def get_config_path():
+    """Get the path to config.json, prioritizing external file over bundled one"""
+    # First, try to find config.json in the same directory as the executable
+    if getattr(sys, 'frozen', False):
+        # Running as compiled executable
+        exe_dir = os.path.dirname(sys.executable)
+        external_config = os.path.join(exe_dir, "config.json")
+        if os.path.exists(external_config):
+            logging.info("Using external config.json from executable directory")
+            return external_config
+    
+    # If not found or running from source, try current directory
+    current_dir_config = os.path.join(os.path.dirname(__file__), "config.json")
+    if os.path.exists(current_dir_config):
+        logging.info("Using config.json from current directory")
+        return current_dir_config
+    
+    # Fall back to bundled config
+    logging.info("Using bundled config.json")
+    return resource_path("config.json")
+
 # Load configuration from config.json
 try:
-    config_path = resource_path("config.json")
+    config_path = get_config_path()
     with open(config_path, "r") as f:
         config = json.load(f)
 except FileNotFoundError:
     print(f"Error: 'config.json' not found in the application directory.")
+    logging.error("config.json not found at: %s", config_path)
     sys.exit(1)
 except json.JSONDecodeError:
     print(f"Error: 'config.json' contains invalid JSON.")
+    logging.error("Invalid JSON in config.json at: %s", config_path)
     sys.exit(1)
 
 
@@ -479,9 +502,9 @@ class BookCheckInApp(QMainWindow):
     @staticmethod
     def fetch_ncip_access_token():
         try:
-            auth = HTTPBasicAuth(config["ncip_wskey"], config["ncip_secret"])
+            auth = HTTPBasicAuth(config["wskey"], config["secret"])
             headers = {"Content-Type": "application/x-www-form-urlencoded"}
-            data = {"grant_type": "client_credentials", "scope": "WMS_NCIP"}
+            data = {"grant_type": "client_credentials", "scope": config["scope"]}
 
             response = requests.post(config["oauth_server_token"], headers=headers, auth=auth, data=data, timeout=10)
             response.raise_for_status()
@@ -557,7 +580,7 @@ class BookCheckInApp(QMainWindow):
         Mark item as non-loan return.
         """
         try:
-            url = f"{config['circulation_api_url']}/items/{barcode}/routings/usages"
+            url = f"https://{config['institution_id']}.share.worldcat.org/circ/items/{barcode}/routings/usages"
             payload = {
                 "location": f"https://{config['institution_id']}.share.worldcat.org/circ/branches/{config['registry_id']}"
                 }
